@@ -1,0 +1,78 @@
+{
+  "skus": {
+    "4740489001247": {
+      "name": "Fresh Eggs",
+      "price": 3.20,
+      "category": "Dairy",
+      "description": "Fresh farm eggs (12 pack)",
+      "image": "images/eggs.png"
+    },
+    "8076809521581": {
+      "name": "Italian Pasta",
+      "price": 2.50,
+      "category": "Pantry",
+      "description": "Premium Italian pasta 500g",
+      "image": "images/pasta.png"
+    },
+    "8411922077827": {
+      "name": "Cooking String",
+      "price": 1.80,
+      "category": "Kitchen",
+      "description": "Kitchen cooking string",
+      "image": "images/cooking_string.png"
+    },
+    "768563267062": {
+      "name": "Almond Butter",
+      "price": 5.90,
+      "category": "Pantry",
+      "description": "Natural almond butter",
+      "image": "images/almond_butter.png"
+    },
+    "4770405227093": {
+      "name": "Mineral Water",
+      "price": 1.20,
+      "category": "Beverages",
+      "description": "Natural mineral water 1.5L",
+      "image": "images/mineral_water.png"
+    },
+    "5902860417095": {
+      "name": "Dr. Pepper",
+      "price": 2.40,
+      "category": "Beverages",
+      "description": "Dr. Pepper soda can",
+      "image": "images/dr_pepper.png"
+    },
+    "9771736640006": {
+      "name": "Princess Magazine",
+      "price": 4.50,
+      "category": "Magazines",
+      "description": "Princess children's magazine",
+      "image": "images/princess_magazine.png"
+    },
+    "9789129721591": {
+      "name": "Pippi Longstocking",
+      "price": 12.90,
+      "category": "Books",
+      "description": "Pippi Longstocking book",
+      "image": "images/pippi_book.png"
+    },
+    "4740093001879": {
+      "name": "Ice Cream",
+      "price": 4.80,
+      "category": "Frozen",
+      "description": "Vanilla ice cream 500ml",
+      "image": "images/ice_cream.png"
+    }
+  },
+  "keyboard_shortcuts": {
+    "1": "4740489001247",
+    "2": "8076809521581",
+    "3": "8411922077827",
+    "4": "768563267062",
+    "5": "4770405227093",
+    "6": "5902860417095",
+    "7": "9771736640006",
+    "8": "9789129721591",
+    "9": "4740093001879"
+  }
+} 
