@@ -640,14 +640,14 @@ class ArcadeRetailGame:
                         self.running = False
                 
                 elif self.state == RETAIL_MODE:
-                    if event.key == pygame.K_p:  # BLUE button (K2) - Checkout
+                    if event.key == pygame.K_x:  # GREEN button (K1) - Checkout
                         self.start_payment()
+                    elif event.key == pygame.K_p:  # BLUE button (K2) - Remove last item
+                        self.remove_last_item()
                     elif event.key == pygame.K_c:  # YELLOW button (K3) - Clear cart
                         self.clear_cart()
                     elif event.key == pygame.K_r:  # Print receipt (keyboard only)
                         self.print_receipt()
-                    elif event.key == pygame.K_x:  # GREEN button (K1) - Remove last item
-                        self.remove_last_item()
                     elif event.key == pygame.K_UP:  # Scroll up in cart
                         if self.cart_scroll_offset > 0:
                             self.cart_scroll_offset -= 1
@@ -771,10 +771,10 @@ class ArcadeRetailGame:
                             self.running = False
                     
                     elif self.state == RETAIL_MODE:
-                        if button_color == 'green':  # K1 - Remove last item (quick undo action)
-                            self.remove_last_item()
-                        elif button_color == 'blue':  # K2 - Checkout (primary action)
+                        if button_color == 'green':  # K1 - Checkout (go/start action)
                             self.start_payment()
+                        elif button_color == 'blue':  # K2 - Remove last item (undo action)
+                            self.remove_last_item()
                         elif button_color == 'yellow':  # K3 - Clear cart (utility action)
                             self.clear_cart()
                         elif button_color == 'red':  # K4 - Home/Exit (stop action)
@@ -1141,10 +1141,10 @@ class ArcadeRetailGame:
         
         # 4 essential buttons - just the action text
         buttons = [
-            ("REMOVE", RED),
-            ("CHECKOUT", BLUE), 
+            ("CHECKOUT", BRIGHT_GREEN),
+            ("REMOVE", BLUE), 
             ("CLEAR ALL", YELLOW),
-            ("HOME", BRIGHT_GREEN)
+            ("HOME", RED)
         ]
         
         # Center the buttons
