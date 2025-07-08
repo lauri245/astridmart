@@ -1440,8 +1440,9 @@ class ArcadeRetailGame:
         self.screen.blit(find_text, find_rect)
         
         # HUGE PRODUCT IMAGE - arcade style with original quality
-        image_y = target_y + self.scale(60)
-        image_size = self.scale(400)  # Much bigger image - 400px scaled to screen
+        image_y = target_y + self.scale(40)
+        # Make image much bigger - use more screen space
+        image_size = min(self.width * 0.4, self.height * 0.5)  # 40% of width or 50% of height, whichever is smaller
         image_rect = pygame.Rect(self.width//2 - image_size//2, image_y, image_size, image_size)
         
         # Get the SKU for this target to find its image
@@ -1454,7 +1455,7 @@ class ArcadeRetailGame:
         if target_sku and target_sku in self.product_images:
             # Scale to huge size while preserving original quality
             image = self.product_images[target_sku]
-            image_scaled = pygame.transform.scale(image, (image_size, image_size))
+            image_scaled = pygame.transform.scale(image, (int(image_size), int(image_size)))
             self.screen.blit(image_scaled, image_rect)
         else:
             # Fallback if no image - simple gray box
@@ -1463,9 +1464,9 @@ class ArcadeRetailGame:
             no_image_rect = no_image_text.get_rect(center=image_rect.center)
             self.screen.blit(no_image_text, no_image_rect)
         
-        # Product name below image - clean, no borders
-        name_y = image_rect.bottom + self.scale(20)
-        target_text = self.font_large.render(self.current_target['name'], True, HOT_PINK)
+        # Product name below image - smaller font for better balance
+        name_y = image_rect.bottom + self.scale(25)
+        target_text = self.font_medium.render(self.current_target['name'], True, HOT_PINK)
         target_rect = target_text.get_rect(center=(self.width//2, name_y))
         self.screen.blit(target_text, target_rect)
         
