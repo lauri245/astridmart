@@ -135,6 +135,19 @@ class ArcadeRetailGame:
         self.serial_running = False
         self.setup_serial_scanner()
         
+        # Joystick support for arcade controllers
+        pygame.joystick.init()
+        self.joystick = None
+        self.joystick_button_mapping = {
+            # Default mapping for common arcade controllers
+            # These can be adjusted based on your specific controller
+            0: 'green',  # K1 - GREEN button (Start/Go actions)
+            1: 'blue',   # K2 - BLUE button (Primary/Educational actions)
+            2: 'yellow', # K3 - YELLOW button (Management/Utility actions)
+            3: 'red'     # K4 - RED button (Stop/Exit actions)
+        }
+        self.setup_joystick()
+        
     def load_products(self):
         """Load products from JSON file"""
         try:
@@ -364,6 +377,25 @@ class ArcadeRetailGame:
         except Exception as e:
             if self.debug_mode:
                 print(f"DEBUG: Serial scanner check error: {e}")
+    
+    def setup_joystick(self):
+        """Setup joystick/arcade controller if available"""
+        joystick_count = pygame.joystick.get_count()
+        
+        if joystick_count > 0:
+            # Use the first joystick
+            self.joystick = pygame.joystick.Joystick(0)
+            self.joystick.init()
+            
+            if self.debug_mode:
+                print(f"DEBUG: Joystick connected: {self.joystick.get_name()}")
+                print(f"DEBUG: Joystick buttons: {self.joystick.get_numbuttons()}")
+                print(f"DEBUG: Button mapping: {self.joystick_button_mapping}")
+            
+            print(f"🕹️  Arcade controller connected: {self.joystick.get_name()}")
+        else:
+            if self.debug_mode:
+                print("DEBUG: No joystick/arcade controller detected")
     
     def process_barcode_input(self, key_char):
         """Process barcode character input from scanner or keyboard"""
@@ -598,23 +630,23 @@ class ArcadeRetailGame:
                     elif event.key == pygame.K_q:
                         self.running = False
                     # Arcade colored buttons for actual game
-                    elif event.key == pygame.K_x:  # RED button - Self-checkout
+                    elif event.key == pygame.K_x:  # GREEN button (K1) - Self-checkout
                         self.start_retail_mode()
-                    elif event.key == pygame.K_p:  # BLUE button - Learning mode
+                    elif event.key == pygame.K_p:  # BLUE button (K2) - Learning mode
                         self.start_timer_mode()
-                    elif event.key == pygame.K_c:  # YELLOW button - Product manager
+                    elif event.key == pygame.K_c:  # YELLOW button (K3) - Product manager
                         self.state = PRODUCT_MANAGER
-                    elif event.key == pygame.K_ESCAPE:  # GREEN button - Quit game
+                    elif event.key == pygame.K_ESCAPE:  # RED button (K4) - Quit game
                         self.running = False
                 
                 elif self.state == RETAIL_MODE:
-                    if event.key == pygame.K_p:  # Process payment
+                    if event.key == pygame.K_p:  # BLUE button (K2) - Checkout
                         self.start_payment()
-                    elif event.key == pygame.K_c:  # Clear cart
+                    elif event.key == pygame.K_c:  # YELLOW button (K3) - Clear cart
                         self.clear_cart()
-                    elif event.key == pygame.K_r:  # Print receipt
+                    elif event.key == pygame.K_r:  # Print receipt (keyboard only)
                         self.print_receipt()
-                    elif event.key == pygame.K_x:  # Remove last item
+                    elif event.key == pygame.K_x:  # GREEN button (K1) - Remove last item
                         self.remove_last_item()
                     elif event.key == pygame.K_UP:  # Scroll up in cart
                         if self.cart_scroll_offset > 0:
@@ -670,7 +702,7 @@ class ArcadeRetailGame:
                                 self.scan_item(key_char)
                 
                 elif self.state == PAYMENT_MODE:
-                    if event.key == pygame.K_p:  # BLUE button - advance payment
+                    if event.key == pygame.K_p:  # BLUE button (K2) - advance payment
                         self.advance_payment()
                 
                 elif self.state == TIMER_MODE:
@@ -714,9 +746,57 @@ class ArcadeRetailGame:
                             self.scanned_item = "Error importing products.csv"
                 
                 elif self.state == GAME_OVER:
-                    # GREEN button to return to menu
-                    if event.key == pygame.K_ESCAPE:  # GREEN button - Return to menu
+                    # RED button to return to menu
+                    if event.key == pygame.K_ESCAPE:  # RED button (K4) - Return to menu
                         self.state = MENU
+            
+            # Handle joystick button events
+            elif event.type == pygame.JOYBUTTONDOWN:
+                if self.joystick:
+                    button_num = event.button
+                    button_color = self.joystick_button_mapping.get(button_num, 'unknown')
+                    
+                    if self.debug_mode:
+                        print(f"DEBUG: Joystick button {button_num} pressed ({button_color})")
+                    
+                    # Handle button actions based on color and current state
+                    if self.state == MENU:
+                        if button_color == 'green':  # K1 - Self-checkout (Start/Go action)
+                            self.start_retail_mode()
+                        elif button_color == 'blue':  # K2 - Learning mode (Educational action)
+                            self.start_timer_mode()
+                        elif button_color == 'yellow':  # K3 - Product manager (Management action)
+                            self.state = PRODUCT_MANAGER
+                        elif button_color == 'red':  # K4 - Quit game (Stop/Exit action)
+                            self.running = False
+                    
+                    elif self.state == RETAIL_MODE:
+                        if button_color == 'green':  # K1 - Remove last item (quick undo action)
+                            self.remove_last_item()
+                        elif button_color == 'blue':  # K2 - Checkout (primary action)
+                            self.start_payment()
+                        elif button_color == 'yellow':  # K3 - Clear cart (utility action)
+                            self.clear_cart()
+                        elif button_color == 'red':  # K4 - Home/Exit (stop action)
+                            self.state = MENU
+                    
+                    elif self.state == PAYMENT_MODE:
+                        if button_color == 'blue':  # K2 - Advance payment (primary action)
+                            self.advance_payment()
+                        elif button_color == 'red':  # K4 - Cancel payment (stop action)
+                            self.state = RETAIL_MODE
+                    
+                    elif self.state == TIMER_MODE:
+                        if button_color == 'red':  # K4 - Exit to menu (stop action)
+                            self.state = MENU
+                    
+                    elif self.state == PRODUCT_MANAGER:
+                        if button_color == 'red':  # K4 - Exit to menu (stop action)
+                            self.state = MENU
+                    
+                    elif self.state == GAME_OVER:
+                        if button_color == 'red':  # K4 - Return to menu (stop action)
+                            self.state = MENU
     
     def toggle_fullscreen(self):
         """Toggle between fullscreen and windowed mode"""
@@ -918,12 +998,12 @@ class ArcadeRetailGame:
         tagline_rect = tagline.get_rect(center=(self.width//2, tagline_y))
         self.screen.blit(tagline, tagline_rect)
         
-        # Menu options with colored buttons - positioned below banner
+        # Menu options with more intuitive colored buttons
         options = [
-            ("SELF-CHECKOUT", RED),
-            ("LEARNING MODE", BLUE),
-            ("PRODUCT MANAGER", YELLOW),
-            ("QUIT GAME", BRIGHT_GREEN)
+            ("SELF-CHECKOUT", BRIGHT_GREEN),  # GREEN = Start/Go action
+            ("LEARNING MODE", BLUE),          # BLUE = Educational/Primary action
+            ("PRODUCT MANAGER", YELLOW),      # YELLOW = Settings/Management
+            ("QUIT GAME", RED)                # RED = Stop/Exit action
         ]
         
         # Calculate start position based on banner height
@@ -931,20 +1011,20 @@ class ArcadeRetailGame:
         for i, (text, color) in enumerate(options):
             option_y = start_y + i * self.height * 0.08
             
-            # Draw colored circle before text
-            circle_x = self.width//2 - 120  # Position circle to the left of text
-            circle_y = option_y
-            pygame.draw.circle(self.screen, color, (circle_x, circle_y), 20)
-            pygame.draw.circle(self.screen, BLACK, (circle_x, circle_y), 20, 3)  # Black border
-            
             # White text for readability
             option_text = self.font_medium.render(text, True, WHITE)
             option_rect = option_text.get_rect(center=(self.width//2, option_y))
             
-            # Option background box with colored border (same color as circle)
+            # Option background box with colored border
             option_bg = pygame.Rect(option_rect.x - 30, option_rect.y - 10, 
                                   option_rect.width + 60, option_rect.height + 20)
-            self.draw_border_box(option_bg, color, 3)  # Colored border matching the circle
+            self.draw_border_box(option_bg, color, 3)  # Colored border
+            
+            # Draw colored circle AFTER text, positioned to the right
+            circle_x = option_bg.right + 30  # Position circle to the right of the box
+            circle_y = option_y
+            pygame.draw.circle(self.screen, color, (circle_x, circle_y), 18)
+            pygame.draw.circle(self.screen, BLACK, (circle_x, circle_y), 18, 3)  # Black border
             
             self.screen.blit(option_text, option_rect)
         
@@ -1258,9 +1338,9 @@ class ArcadeRetailGame:
         # Exit instruction at bottom
         exit_text = self.font_small.render("Press     button to return to menu", True, WHITE)
         exit_rect = exit_text.get_rect(center=(self.width//2, self.height * 0.95))
-        # Draw green circle
+        # Draw red circle (K4 - Exit action)
         circle_x = exit_rect.centerx - 80
-        pygame.draw.circle(self.screen, BRIGHT_GREEN, (circle_x, exit_rect.centery), 12)
+        pygame.draw.circle(self.screen, RED, (circle_x, exit_rect.centery), 12)
         pygame.draw.circle(self.screen, BLACK, (circle_x, exit_rect.centery), 12, 2)
         self.screen.blit(exit_text, exit_rect)
         
@@ -1354,12 +1434,12 @@ class ArcadeRetailGame:
         total_rect = total_text.get_rect(center=(self.width//2, self.height * 0.7))
         self.screen.blit(total_text, total_rect)
         
-        # Continue instruction - use GREEN button which goes back to menu
+        # Continue instruction - use RED button which goes back to menu
         continue_text = self.font_medium.render("Press     button to continue", True, WHITE)
         continue_rect = continue_text.get_rect(center=(self.width//2, self.height * 0.85))
-        # Draw green circle
+        # Draw red circle (K4 - Exit/Continue action)
         circle_x = continue_rect.centerx - 60
-        pygame.draw.circle(self.screen, BRIGHT_GREEN, (circle_x, continue_rect.centery), 15)
+        pygame.draw.circle(self.screen, RED, (circle_x, continue_rect.centery), 15)
         pygame.draw.circle(self.screen, BLACK, (circle_x, continue_rect.centery), 15, 2)
         self.screen.blit(continue_text, continue_rect)
     
@@ -1394,6 +1474,10 @@ class ArcadeRetailGame:
             if self.serial_thread:
                 self.serial_thread.join(timeout=1.0)
             self.serial_scanner.close()
+        
+        # Clean up joystick
+        if self.joystick:
+            self.joystick.quit()
         
         pygame.quit()
 
