@@ -773,9 +773,8 @@ class ArcadeRetailGame:
                     if self.debug_mode:
                         print(f"DEBUG: Joystick button {button_num} pressed ({button_color})")
                     
-                    # Check for shutdown combo (red + player1 buttons)
-                    if button_color in ['red', 'player1']:
-                        self.check_shutdown_combo()
+                    # Shutdown combo is handled by continuous checking in main loop
+                    # Just process normal button actions for red/player1 buttons
                     
                     # Handle button actions based on color and current state
                     if self.state == MENU:
@@ -872,15 +871,33 @@ class ArcadeRetailGame:
         
         # Import subprocess here to avoid import at module level
         import subprocess
+        import sys
         
-        # Shutdown the system
-        try:
-            subprocess.run(['sudo', 'shutdown', '-h', 'now'], check=True)
-        except subprocess.CalledProcessError:
-            print("Failed to shutdown system - you may need to configure sudo permissions")
-            # Fallback to just exiting the game
-            import sys
-            sys.exit(0)
+        # Try multiple shutdown methods
+        shutdown_commands = [
+            ['sudo', 'shutdown', '-h', 'now'],
+            ['sudo', 'poweroff'],
+            ['sudo', '/sbin/shutdown', '-h', 'now'],
+            ['sudo', '/sbin/poweroff']
+        ]
+        
+        for cmd in shutdown_commands:
+            try:
+                print(f"Trying shutdown command: {' '.join(cmd)}")
+                subprocess.run(cmd, check=True, timeout=5)
+                break  # If successful, break out
+            except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
+                print(f"Shutdown command failed: {e}")
+                continue
+        else:
+            print("❌ All shutdown commands failed!")
+            print("💡 To fix: SSH into Pi and run:")
+            print("💡   sudo visudo -f /etc/sudoers.d/astrid-shutdown")
+            print("💡 Add this line:")
+            print("💡   astrid ALL=(ALL) NOPASSWD: /sbin/shutdown, /sbin/reboot, /sbin/poweroff")
+            
+        # Exit the program (fallback if shutdown fails)
+        sys.exit(0)
     
     def toggle_fullscreen(self):
         """Toggle between fullscreen and windowed mode"""
@@ -1589,8 +1606,8 @@ class ArcadeRetailGame:
             # Check for serial scanner input
             self.check_serial_scanner()
             
-            # Check shutdown combo continuously
-            if self.shutdown_combo_active:
+            # Check shutdown combo continuously when relevant buttons might be held
+            if self.joystick and (self.joystick.get_button(3) or self.joystick.get_button(4)):
                 self.check_shutdown_combo()
             
             # Draw based on current state
