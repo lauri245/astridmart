@@ -1,0 +1,19 @@
+[Unit]
+Description=Arcade Retail Store Game
+After=network.target sound.target graphical-session.target
+Wants=graphical-session.target
+
+[Service]
+Type=simple
+User=astrid
+Group=astrid
+WorkingDirectory=/home/astrid/astridmart
+Environment=DISPLAY=:0
+ExecStart=/usr/bin/python3 /home/astrid/astridmart/main.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target 

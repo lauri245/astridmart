@@ -1,0 +1,41 @@
+{
+  "games": [
+    {
+      "name": "Astrid Mart",
+      "description": "Shopping adventure with barcode scanner",
+      "script": "main.py",
+      "icon": "🛒",
+      "working_dir": "/home/astrid/astridmart",
+      "enabled": true
+    },
+    {
+      "name": "Memory Game",
+      "description": "Test your memory skills",
+      "script": "memory_game.py",
+      "icon": "🧠",
+      "working_dir": "/home/astrid/games",
+      "enabled": false
+    },
+    {
+      "name": "Puzzle Quest",
+      "description": "Solve challenging puzzles",
+      "script": "puzzle_game.py", 
+      "icon": "🧩",
+      "working_dir": "/home/astrid/games",
+      "enabled": false
+    },
+    {
+      "name": "Racing Game",
+      "description": "Fast-paced arcade racing",
+      "script": "racing_game.py",
+      "icon": "🏎️",
+      "working_dir": "/home/astrid/games", 
+      "enabled": false
+    }
+  ],
+  "settings": {
+    "auto_launch_timeout": 30,
+    "show_coming_soon": true,
+    "allow_shutdown": true
+  }
+} 

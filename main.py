@@ -144,9 +144,15 @@ class ArcadeRetailGame:
             0: 'green',  # K1 - GREEN button (Start/Go actions)
             1: 'blue',   # K2 - BLUE button (Primary/Educational actions)
             2: 'yellow', # K3 - YELLOW button (Management/Utility actions)
-            3: 'red'     # K4 - RED button (Stop/Exit actions)
+            3: 'red',    # K4 - RED button (Stop/Exit actions)
+            4: 'player1' # Player 1 button (for shutdown combo)
         }
         self.setup_joystick()
+        
+        # Shutdown combo tracking
+        self.shutdown_combo_start_time = None
+        self.shutdown_combo_active = False
+        self.SHUTDOWN_COMBO_DURATION = 3.0  # 3 seconds
         
     def scale(self, value):
         """Scale a value relative to screen height for responsive design"""
@@ -769,6 +775,10 @@ class ArcadeRetailGame:
                     if self.debug_mode:
                         print(f"DEBUG: Joystick button {button_num} pressed ({button_color})")
                     
+                    # Check for shutdown combo (red + player1 buttons)
+                    if button_color in ['red', 'player1']:
+                        self.check_shutdown_combo()
+                    
                     # Handle button actions based on color and current state
                     if self.state == MENU:
                         if button_color == 'green':  # K1 - Self-checkout (Start/Go action)
@@ -807,6 +817,72 @@ class ArcadeRetailGame:
                     elif self.state == GAME_OVER:
                         if button_color == 'red':  # K4 - Return to menu (stop action)
                             self.state = MENU
+            
+            # Handle joystick button release events
+            elif event.type == pygame.JOYBUTTONUP:
+                if self.joystick:
+                    button_num = event.button
+                    button_color = self.joystick_button_mapping.get(button_num, 'unknown')
+                    
+                    # Reset shutdown combo if either button is released
+                    if button_color in ['red', 'player1']:
+                        self.shutdown_combo_start_time = None
+                        self.shutdown_combo_active = False
+    
+    def check_shutdown_combo(self):
+        """Check if both red and player1 buttons are currently pressed"""
+        if not self.joystick:
+            return
+            
+        # Check if both buttons are currently pressed
+        red_pressed = self.joystick.get_button(3)  # Red button
+        player1_pressed = self.joystick.get_button(4)  # Player1 button
+        
+        if red_pressed and player1_pressed:
+            # Both buttons are pressed
+            current_time = pygame.time.get_ticks()
+            
+            if not self.shutdown_combo_active:
+                # Start the combo timer
+                self.shutdown_combo_start_time = current_time
+                self.shutdown_combo_active = True
+                if self.debug_mode:
+                    print("DEBUG: Shutdown combo started - hold for 3 seconds")
+            else:
+                # Check if held long enough
+                hold_time = (current_time - self.shutdown_combo_start_time) / 1000.0
+                if hold_time >= self.SHUTDOWN_COMBO_DURATION:
+                    self.initiate_shutdown()
+        else:
+            # Reset if not both buttons pressed
+            self.shutdown_combo_start_time = None
+            self.shutdown_combo_active = False
+    
+    def initiate_shutdown(self):
+        """Safely shutdown the system"""
+        print("🔴 SHUTDOWN COMBO DETECTED - Shutting down system...")
+        
+        # Save any important data
+        self.save_products(self.products_data)
+        
+        # Close serial connection
+        if hasattr(self, 'serial_scanner') and self.serial_scanner:
+            self.serial_scanner.close()
+        
+        # Close pygame
+        pygame.quit()
+        
+        # Import subprocess here to avoid import at module level
+        import subprocess
+        
+        # Shutdown the system
+        try:
+            subprocess.run(['sudo', 'shutdown', '-h', 'now'], check=True)
+        except subprocess.CalledProcessError:
+            print("Failed to shutdown system - you may need to configure sudo permissions")
+            # Fallback to just exiting the game
+            import sys
+            sys.exit(0)
     
     def toggle_fullscreen(self):
         """Toggle between fullscreen and windowed mode"""
@@ -1492,6 +1568,10 @@ class ArcadeRetailGame:
             
             # Check for serial scanner input
             self.check_serial_scanner()
+            
+            # Check shutdown combo continuously
+            if self.shutdown_combo_active:
+                self.check_shutdown_combo()
             
             # Draw based on current state
             if self.state == MENU:
