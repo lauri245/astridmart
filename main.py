@@ -1206,14 +1206,14 @@ class ArcadeRetailGame:
             self.screen.blit(message_text, message_rect)
     
     def draw_payment_mode(self):
-        """Draw payment process screen"""
+        """Draw payment process screen - clean button design"""
         self.screen.fill(BLACK)
         
-        # Title
+        # Title - responsive padding
         title = self.font_large.render("PAYMENT", True, GREEN)
         title_rect = title.get_rect(center=(self.width//2, self.height * 0.15))
-        title_bg = pygame.Rect(title_rect.x - 20, title_rect.y - 10, 
-                              title_rect.width + 40, title_rect.height + 20)
+        title_bg = pygame.Rect(title_rect.x - self.scale(20), title_rect.y - self.scale(10), 
+                              title_rect.width + self.scale(40), title_rect.height + self.scale(20))
         self.draw_border_box(title_bg, GREEN, 4)
         self.screen.blit(title, title_rect)
         
@@ -1224,14 +1224,29 @@ class ArcadeRetailGame:
             amount_rect = amount_text.get_rect(center=(self.width//2, self.height * 0.4))
             self.screen.blit(amount_text, amount_rect)
             
-            instruction = self.font_medium.render("Press     button to pay", True, WHITE)
-            instruction_rect = instruction.get_rect(center=(self.width//2, self.height * 0.6))
-            # Draw blue circle where the space is
-            circle_x = instruction_rect.centerx - 60
-            pygame.draw.circle(self.screen, BLUE, (circle_x, instruction_rect.centery), 15)
-            pygame.draw.circle(self.screen, BLACK, (circle_x, instruction_rect.centery), 15, 2)
-            instruction_rect = instruction.get_rect(center=(self.width//2, self.height * 0.6))
-            self.screen.blit(instruction, instruction_rect)
+            # Clear buttons instead of confusing tiny circles
+            button_width = self.width * 0.3  # Responsive button width
+            button_height = self.height * 0.08  # Responsive button height
+            
+            # BLUE button - Pay
+            pay_button_y = self.height * 0.6
+            pay_button_rect = pygame.Rect(self.width//2 - button_width//2, pay_button_y, button_width, button_height)
+            pygame.draw.rect(self.screen, BLUE, pay_button_rect)
+            pygame.draw.rect(self.screen, BLACK, pay_button_rect, 3)
+            
+            pay_text = self.font_medium.render("PAY NOW", True, BLACK)
+            pay_text_rect = pay_text.get_rect(center=pay_button_rect.center)
+            self.screen.blit(pay_text, pay_text_rect)
+            
+            # RED button - Cancel
+            cancel_button_y = self.height * 0.75
+            cancel_button_rect = pygame.Rect(self.width//2 - button_width//2, cancel_button_y, button_width, button_height)
+            pygame.draw.rect(self.screen, RED, cancel_button_rect)
+            pygame.draw.rect(self.screen, BLACK, cancel_button_rect, 3)
+            
+            cancel_text = self.font_medium.render("CANCEL", True, BLACK)
+            cancel_text_rect = cancel_text.get_rect(center=cancel_button_rect.center)
+            self.screen.blit(cancel_text, cancel_text_rect)
         
         elif self.payment_step == 1:
             # Processing payment
@@ -1245,13 +1260,17 @@ class ArcadeRetailGame:
             dots_rect = dots_text.get_rect(center=(self.width//2, self.height * 0.5))
             self.screen.blit(dots_text, dots_rect)
             
-            instruction = self.font_medium.render("Press     button to continue", True, WHITE)
-            instruction_rect = instruction.get_rect(center=(self.width//2, self.height * 0.7))
-            # Draw blue circle
-            circle_x = instruction_rect.centerx - 60
-            pygame.draw.circle(self.screen, BLUE, (circle_x, instruction_rect.centery), 15)
-            pygame.draw.circle(self.screen, BLACK, (circle_x, instruction_rect.centery), 15, 2)
-            self.screen.blit(instruction, instruction_rect)
+            # BLUE button - Continue
+            button_width = self.width * 0.3
+            button_height = self.height * 0.08
+            continue_button_y = self.height * 0.7
+            continue_button_rect = pygame.Rect(self.width//2 - button_width//2, continue_button_y, button_width, button_height)
+            pygame.draw.rect(self.screen, BLUE, continue_button_rect)
+            pygame.draw.rect(self.screen, BLACK, continue_button_rect, 3)
+            
+            continue_text = self.font_medium.render("CONTINUE", True, BLACK)
+            continue_text_rect = continue_text.get_rect(center=continue_button_rect.center)
+            self.screen.blit(continue_text, continue_text_rect)
         
         elif self.payment_step == 2:
             # Payment successful
@@ -1259,13 +1278,17 @@ class ArcadeRetailGame:
             success_rect = success_text.get_rect(center=(self.width//2, self.height * 0.4))
             self.screen.blit(success_text, success_rect)
             
-            instruction = self.font_medium.render("Press     button for receipt", True, WHITE)
-            instruction_rect = instruction.get_rect(center=(self.width//2, self.height * 0.6))
-            # Draw blue circle
-            circle_x = instruction_rect.centerx - 60
-            pygame.draw.circle(self.screen, BLUE, (circle_x, instruction_rect.centery), 15)
-            pygame.draw.circle(self.screen, BLACK, (circle_x, instruction_rect.centery), 15, 2)
-            self.screen.blit(instruction, instruction_rect)
+            # BLUE button - Get Receipt
+            button_width = self.width * 0.3
+            button_height = self.height * 0.08
+            receipt_button_y = self.height * 0.6
+            receipt_button_rect = pygame.Rect(self.width//2 - button_width//2, receipt_button_y, button_width, button_height)
+            pygame.draw.rect(self.screen, BLUE, receipt_button_rect)
+            pygame.draw.rect(self.screen, BLACK, receipt_button_rect, 3)
+            
+            receipt_text = self.font_medium.render("GET RECEIPT", True, BLACK)
+            receipt_text_rect = receipt_text.get_rect(center=receipt_button_rect.center)
+            self.screen.blit(receipt_text, receipt_text_rect)
         
         elif self.payment_step == 3:
             # Receipt and thank you
@@ -1277,24 +1300,17 @@ class ArcadeRetailGame:
             receipt_rect = receipt_text.get_rect(center=(self.width//2, self.height * 0.5))
             self.screen.blit(receipt_text, receipt_rect)
             
-            instruction = self.font_medium.render("Press     button to continue", True, WHITE)
-            instruction_rect = instruction.get_rect(center=(self.width//2, self.height * 0.65))
-            # Draw blue circle
-            circle_x = instruction_rect.centerx - 60
-            pygame.draw.circle(self.screen, BLUE, (circle_x, instruction_rect.centery), 15)
-            pygame.draw.circle(self.screen, BLACK, (circle_x, instruction_rect.centery), 15, 2)
-            self.screen.blit(instruction, instruction_rect)
-        
-        # ESC to cancel (only in first step)
-        if self.payment_step == 0:
-            cancel_text = self.font_small.render("     button to cancel", True, WHITE)
-            cancel_rect = cancel_text.get_rect(center=(self.width//2, self.height * 0.8))
-            # Draw green circle
-            circle_x = cancel_rect.centerx - 80
-            pygame.draw.circle(self.screen, BRIGHT_GREEN, (circle_x, cancel_rect.centery), 12)
-            pygame.draw.circle(self.screen, BLACK, (circle_x, cancel_rect.centery), 12, 2)
-            cancel_rect = cancel_text.get_rect(center=(self.width//2, self.height * 0.8))
-            self.screen.blit(cancel_text, cancel_rect)
+            # BLUE button - Continue Shopping
+            button_width = self.width * 0.35
+            button_height = self.height * 0.08
+            continue_button_y = self.height * 0.65
+            continue_button_rect = pygame.Rect(self.width//2 - button_width//2, continue_button_y, button_width, button_height)
+            pygame.draw.rect(self.screen, BLUE, continue_button_rect)
+            pygame.draw.rect(self.screen, BLACK, continue_button_rect, 3)
+            
+            continue_text = self.font_medium.render("CONTINUE SHOPPING", True, BLACK)
+            continue_text_rect = continue_text.get_rect(center=continue_button_rect.center)
+            self.screen.blit(continue_text, continue_text_rect)
     
     def draw_timer_mode(self):
         """Draw learning mode screen - clean, no borders, high quality images"""
@@ -1358,14 +1374,17 @@ class ArcadeRetailGame:
         target_rect = target_text.get_rect(center=(self.width//2, name_y))
         self.screen.blit(target_text, target_rect)
         
-        # Exit instruction at bottom
-        exit_text = self.font_small.render("Press     button to return to menu", True, WHITE)
-        exit_rect = exit_text.get_rect(center=(self.width//2, self.height * 0.95))
-        # Draw red circle (K4 - Exit action)
-        circle_x = exit_rect.centerx - 80
-        pygame.draw.circle(self.screen, RED, (circle_x, exit_rect.centery), 12)
-        pygame.draw.circle(self.screen, BLACK, (circle_x, exit_rect.centery), 12, 2)
-        self.screen.blit(exit_text, exit_rect)
+        # Exit button at bottom - clear and responsive
+        button_width = self.width * 0.25
+        button_height = self.height * 0.06
+        exit_button_y = self.height * 0.92
+        exit_button_rect = pygame.Rect(self.width//2 - button_width//2, exit_button_y, button_width, button_height)
+        pygame.draw.rect(self.screen, RED, exit_button_rect)
+        pygame.draw.rect(self.screen, BLACK, exit_button_rect, 3)
+        
+        exit_text = self.font_small.render("EXIT TO MENU", True, BLACK)
+        exit_text_rect = exit_text.get_rect(center=exit_button_rect.center)
+        self.screen.blit(exit_text, exit_text_rect)
         
         # Feedback message - positioned between product name and exit button
         if self.scanned_item:
