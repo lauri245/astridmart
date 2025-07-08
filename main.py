@@ -148,6 +148,14 @@ class ArcadeRetailGame:
         }
         self.setup_joystick()
         
+    def scale(self, value):
+        """Scale a value relative to screen height for responsive design"""
+        return int(value * self.height / 768)  # 768 is our base height
+    
+    def scale_width(self, value):
+        """Scale a value relative to screen width for responsive design"""
+        return int(value * self.width / 1024)  # 1024 is our base width
+        
     def load_products(self):
         """Load products from JSON file"""
         try:
@@ -548,33 +556,35 @@ class ArcadeRetailGame:
     
     def draw_cart_item(self, item, item_bg, cart_area, is_compact=False):
         """Draw a single cart item - supports both regular and compact layouts"""
-        # Adjust sizes based on layout type
+        # Adjust sizes based on layout type - responsive sizing
         if is_compact:
-            image_size = 75  # Bigger images for compact layout
+            image_size = self.scale(75)  # Responsive image size for compact layout
             font_name = self.font_small
             font_price = self.font_small
             font_qty = self.font_large
         else:
-            image_size = 90  # Even bigger images for single column
+            image_size = self.scale(90)  # Responsive image size for single column
             font_name = self.font_medium
             font_price = self.font_medium
             font_qty = self.font_huge
         
-        # Product image - prominent and clean
-        image_rect = pygame.Rect(item_bg.x + 8, item_bg.y + 8, image_size, image_size)
+        # Product image - prominent and clean - responsive padding
+        padding = self.scale(8)
+        image_rect = pygame.Rect(item_bg.x + padding, item_bg.y + padding, image_size, image_size)
         if item['sku'] in self.product_images:
             # White background with subtle border for prominence
             pygame.draw.rect(self.screen, WHITE, image_rect)
             pygame.draw.rect(self.screen, (200, 200, 200), image_rect, 2)
             
-            # Scale down high-resolution image to cart size
+            # Scale down high-resolution image to cart size - responsive border
+            border = self.scale(12)
             image = self.product_images[item['sku']]
-            image_scaled = pygame.transform.scale(image, (image_size - 12, image_size - 12))
-            image_center = (image_rect.centerx - (image_size - 12)//2, image_rect.centery - (image_size - 12)//2)
+            image_scaled = pygame.transform.scale(image, (image_size - border, image_size - border))
+            image_center = (image_rect.centerx - (image_size - border)//2, image_rect.centery - (image_size - border)//2)
             self.screen.blit(image_scaled, image_center)
         
-        # Product details - simple text
-        text_x = image_rect.right + 15
+        # Product details - simple text - responsive spacing
+        text_x = image_rect.right + self.scale(15)
         
         # Product name - truncate if too long for compact layout
         name = item['name']
@@ -582,22 +592,22 @@ class ArcadeRetailGame:
             name = name[:12] + "..."
         
         name_text = font_name.render(name, True, WHITE)
-        self.screen.blit(name_text, (text_x, item_bg.y + 8))
+        self.screen.blit(name_text, (text_x, item_bg.y + padding))
         
-        # Price
+        # Price - responsive spacing
         price_text = font_price.render(f"€{item['price']:.2f}", True, YELLOW)
-        price_y = item_bg.y + 8 + (30 if not is_compact else 22)
+        price_y = item_bg.y + padding + (self.scale(30) if not is_compact else self.scale(22))
         self.screen.blit(price_text, (text_x, price_y))
         
-        # Quantity - HUGE for kids, clean design
+        # Quantity - HUGE for kids, clean design - responsive sizing
         if item['quantity'] > 1:
             qty_text = font_qty.render(f"x{item['quantity']}", True, BLACK)
             qty_rect = qty_text.get_rect()
-            qty_rect.topright = (item_bg.right - 10, item_bg.y + 8)
+            qty_rect.topright = (item_bg.right - self.scale(10), item_bg.y + padding)
             
-            # Simple quantity background
-            qty_bg = pygame.Rect(qty_rect.x - 8, qty_rect.y - 4, 
-                                qty_rect.width + 16, qty_rect.height + 8)
+            # Simple quantity background - responsive padding
+            qty_bg = pygame.Rect(qty_rect.x - self.scale(8), qty_rect.y - self.scale(4), 
+                                qty_rect.width + self.scale(16), qty_rect.height + self.scale(8))
             pygame.draw.rect(self.screen, HOT_PINK, qty_bg)
             self.screen.blit(qty_text, qty_rect)
     
@@ -992,8 +1002,9 @@ class ArcadeRetailGame:
             self.screen.blit(self.storefront_banner, (0, 0))
             banner_height = self.storefront_banner.get_height()
         
-        # Add tagline below banner
-        tagline_y = banner_height + 20 if banner_height > 0 else self.height * 0.25
+        # Add tagline below banner - responsive spacing
+        tagline_spacing = self.scale(20)
+        tagline_y = banner_height + tagline_spacing if banner_height > 0 else self.height * 0.25
         tagline = self.font_medium.render("~ Kids' Shopping Adventure ~", True, WHITE)
         tagline_rect = tagline.get_rect(center=(self.width//2, tagline_y))
         self.screen.blit(tagline, tagline_rect)
@@ -1006,8 +1017,9 @@ class ArcadeRetailGame:
             ("QUIT GAME", RED)                # RED = Stop/Exit action
         ]
         
-        # Calculate start position based on banner height
-        start_y = tagline_y + 60 if banner_height > 0 else self.height * 0.48
+        # Calculate start position based on banner height - responsive spacing
+        menu_spacing = self.scale(60)
+        start_y = tagline_y + menu_spacing if banner_height > 0 else self.height * 0.48
         for i, (text, color) in enumerate(options):
             option_y = start_y + i * self.height * 0.08
             
@@ -1015,28 +1027,33 @@ class ArcadeRetailGame:
             option_text = self.font_medium.render(text, True, WHITE)
             option_rect = option_text.get_rect(center=(self.width//2, option_y))
             
-            # Option background box with colored border
-            option_bg = pygame.Rect(option_rect.x - 30, option_rect.y - 10, 
-                                  option_rect.width + 60, option_rect.height + 20)
+            # Option background box with colored border - responsive padding
+            bg_padding_x = self.scale(30)
+            bg_padding_y = self.scale(10)
+            option_bg = pygame.Rect(option_rect.x - bg_padding_x, option_rect.y - bg_padding_y, 
+                                  option_rect.width + 2*bg_padding_x, option_rect.height + 2*bg_padding_y)
             self.draw_border_box(option_bg, color, 3)  # Colored border
             
-            # Draw colored circle AFTER text, positioned to the right
-            circle_x = option_bg.right + 30  # Position circle to the right of the box
+            # Draw colored circle AFTER text, positioned to the right - responsive positioning
+            circle_offset = self.scale(30)
+            circle_radius = self.scale(18)
+            circle_x = option_bg.right + circle_offset
             circle_y = option_y
-            pygame.draw.circle(self.screen, color, (circle_x, circle_y), 18)
-            pygame.draw.circle(self.screen, BLACK, (circle_x, circle_y), 18, 3)  # Black border
+            pygame.draw.circle(self.screen, color, (circle_x, circle_y), circle_radius)
+            pygame.draw.circle(self.screen, BLACK, (circle_x, circle_y), circle_radius, 3)  # Black border
             
             self.screen.blit(option_text, option_rect)
         
-        # Instructions at bottom - positioned well below menu buttons
+        # Instructions at bottom - positioned well below menu buttons - responsive spacing
         instructions = [
             "Use colored buttons to navigate | Scan barcodes to add items",
             "Press colored buttons matching the menu options above"
         ]
         
-        # Calculate where menu buttons end and position instructions well below
-        last_button_y = start_y + (len(options) - 1) * self.height * 0.08 + 40  # Add some padding
-        instructions_start_y = max(last_button_y + 40, self.height * 0.88)  # Ensure minimum distance
+        # Calculate where menu buttons end and position instructions well below - responsive padding
+        button_padding = self.scale(40)
+        last_button_y = start_y + (len(options) - 1) * self.height * 0.08 + button_padding
+        instructions_start_y = max(last_button_y + button_padding, self.height * 0.88)
         
         for i, instruction in enumerate(instructions):
             text = self.font_small.render(instruction, True, CYAN)
@@ -1065,38 +1082,43 @@ class ArcadeRetailGame:
             total_items = len(items)
             
             if total_items <= 4:
-                # Single column layout for 1-4 items
+                # Single column layout for 1-4 items - responsive spacing
                 visible_items = min(4, total_items)
                 start_idx = self.cart_scroll_offset
                 end_idx = min(start_idx + visible_items, total_items)
                 visible_items_list = items[start_idx:end_idx]
                 
+                item_height = self.scale(95)  # Responsive item height
+                item_spacing = self.scale(105)  # Responsive spacing between items
+                
                 for i, item in enumerate(visible_items_list):
-                    item_y = cart_area.y + (i * 100)  # More space for bigger images
+                    item_y = cart_area.y + (i * item_spacing)
                     
                     # Clean item background - no borders
-                    item_bg = pygame.Rect(cart_area.x, item_y, cart_area.width, 95)
+                    item_bg = pygame.Rect(cart_area.x, item_y, cart_area.width, item_height)
                     pygame.draw.rect(self.screen, (30, 30, 30), item_bg)
                     
                     self.draw_cart_item(item, item_bg, cart_area)
             
             else:
-                # Two column layout for 5-8 items
+                # Two column layout for 5-8 items - responsive dimensions
                 visible_items = min(8, total_items)
                 start_idx = self.cart_scroll_offset
                 end_idx = min(start_idx + visible_items, total_items)
                 visible_items_list = items[start_idx:end_idx]
                 
-                # Calculate column dimensions
-                col_width = (cart_area.width - 20) // 2  # 20px gap between columns
-                col_height = 90  # Bigger height for prominent images
+                # Calculate column dimensions - responsive gap
+                col_gap = self.scale(20)  # Responsive gap between columns
+                col_width = (cart_area.width - col_gap) // 2
+                col_height = self.scale(90)  # Responsive height for prominent images
+                row_spacing = self.scale(100)  # Responsive spacing between rows
                 
                 for i, item in enumerate(visible_items_list):
                     row = i // 2
                     col = i % 2
                     
-                    item_x = cart_area.x + (col * (col_width + 20))
-                    item_y = cart_area.y + (row * 100)  # More space for bigger images
+                    item_x = cart_area.x + (col * (col_width + col_gap))
+                    item_y = cart_area.y + (row * row_spacing)
                     
                     # Clean item background - no borders
                     item_bg = pygame.Rect(item_x, item_y, col_width, col_height)
@@ -1147,12 +1169,13 @@ class ArcadeRetailGame:
             ("HOME", RED)
         ]
         
-        # Center the buttons
-        total_buttons_width = len(buttons) * button_width + (len(buttons) - 1) * 20  # Less spacing
+        # Center the buttons - responsive spacing
+        button_spacing = self.scale(20)  # Responsive spacing between buttons
+        total_buttons_width = len(buttons) * button_width + (len(buttons) - 1) * button_spacing
         start_x = (self.width - total_buttons_width) // 2
         
         for i, (action, color) in enumerate(buttons):
-            button_x = start_x + (i * (button_width + 20))
+            button_x = start_x + (i * (button_width + button_spacing))
             
             # Clean button design with subtle border
             button_rect = pygame.Rect(button_x, button_y, button_width, button_height)
@@ -1164,8 +1187,8 @@ class ArcadeRetailGame:
             action_text = self.font_medium.render(action, True, BLACK)
             action_rect = action_text.get_rect(center=button_rect.center)
             
-            # Only add outline if text is short enough
-            if action_text.get_width() < button_width - 20:
+            # Only add outline if text is short enough - responsive padding
+            if action_text.get_width() < button_width - self.scale(20):
                 # Add subtle shadow for readability
                 shadow_text = self.font_medium.render(action, True, WHITE)
                 shadow_rect = shadow_text.get_rect(center=(button_rect.centerx + 1, button_rect.centery + 1))
@@ -1173,9 +1196,9 @@ class ArcadeRetailGame:
             
             self.screen.blit(action_text, action_rect)
         
-        # Status message - Clean and simple
+        # Status message - Clean and simple - responsive spacing
         if self.scanned_item:
-            status_y = button_y + button_height + 30
+            status_y = button_y + button_height + self.scale(30)
             
             # Clean scan feedback
             message_text = self.font_medium.render(f"✓ {self.scanned_item}", True, BRIGHT_GREEN)
