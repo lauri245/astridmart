@@ -191,16 +191,14 @@ class ArcadeRetailGame:
             return default_data
     
     def load_product_images(self):
-        """Load all product images at higher resolution to prevent quality loss"""
+        """Load all product images at original resolution to preserve quality"""
         print("Loading product images...")
         for sku, product in self.skus.items():
             image_path = product.get('image', '')
             if image_path and os.path.exists(image_path):
                 try:
-                    # Load image at higher resolution to prevent quality loss
+                    # Load image at original resolution - don't scale here!
                     image = pygame.image.load(image_path)
-                    # Scale to 200x200 for learning mode, then we'll scale down for cart
-                    image = pygame.transform.scale(image, (200, 200))
                     self.product_images[sku] = image
                     print(f"Loaded image for {product['name']}")
                 except pygame.error as e:
@@ -582,8 +580,8 @@ class ArcadeRetailGame:
             pygame.draw.rect(self.screen, WHITE, image_rect)
             pygame.draw.rect(self.screen, (200, 200, 200), image_rect, 2)
             
-            # Scale down high-resolution image to cart size - responsive border
-            border = self.scale(12)
+            # Scale original image to cart size - responsive border
+            border = self.scale(4)
             image = self.product_images[item['sku']]
             image_scaled = pygame.transform.scale(image, (image_size - border, image_size - border))
             image_center = (image_rect.centerx - (image_size - border)//2, image_rect.centery - (image_size - border)//2)
@@ -948,6 +946,11 @@ class ArcadeRetailGame:
         self.learning_current_index = 0
         self.scanned_item = ""
         
+        # Reset barcode input state
+        self.barcode_buffer = ""
+        self.barcode_input_time = 0
+        self.last_key_time = 0
+        
         # Randomize product order for different experience each time
         all_items = list(self.skus.values())
         random.shuffle(all_items)
@@ -976,17 +979,27 @@ class ArcadeRetailGame:
     
     def scan_timer_item(self, barcode_or_key):
         """Process scanned item in learning mode - move to next product on wrong scans"""
+        if self.debug_mode:
+            print(f"DEBUG: Learning mode scan attempt: '{barcode_or_key}', target: '{self.current_target['name'] if self.current_target else 'None'}'")
+        
         if not self.current_target:
+            if self.debug_mode:
+                print("DEBUG: No current target in learning mode")
             return
         
         # Apply scan cooldown like retail mode
         current_time = pygame.time.get_ticks()
         if current_time - self.last_scan_time < self.scan_cooldown:
+            if self.debug_mode:
+                print(f"DEBUG: Scan cooldown active, {current_time - self.last_scan_time}ms since last scan")
             return
         
         self.last_scan_time = current_time
         
         product = self.lookup_product(barcode_or_key)
+        if self.debug_mode:
+            print(f"DEBUG: Product lookup result: {product['name'] if product else 'None'}")
+        
         if product:
             if product['name'] == self.current_target['name']:
                 # Correct item!
@@ -994,14 +1007,20 @@ class ArcadeRetailGame:
                 self.timer_score += 1
                 self.timer_items_found.append(product['name'])
                 self.scanned_item = f"✓ Correct! That's {product['name']}!"
+                if self.debug_mode:
+                    print(f"DEBUG: CORRECT! Score now: {self.timer_correct}")
                 self.generate_new_target()
             else:
                 # Wrong item - move to next product automatically
                 self.scanned_item = f"That's {product['name']}. Moving to next product!"
+                if self.debug_mode:
+                    print(f"DEBUG: Wrong item: got '{product['name']}', expected '{self.current_target['name']}'")
                 self.generate_new_target()
         else:
             # Invalid barcode - move to next product
             self.scanned_item = f"Product not found. Moving to next product!"
+            if self.debug_mode:
+                print(f"DEBUG: Product not found for: '{barcode_or_key}'")
             self.generate_new_target()
     
     def generate_new_target(self):
@@ -1420,9 +1439,9 @@ class ArcadeRetailGame:
         find_rect = find_text.get_rect(center=(self.width//2, target_y))
         self.screen.blit(find_text, find_rect)
         
-        # BIG PRODUCT IMAGE - no borders, high quality, arcade style
-        image_y = target_y + 60
-        image_size = 300  # Bigger image for better visibility
+        # HUGE PRODUCT IMAGE - arcade style with original quality
+        image_y = target_y + self.scale(60)
+        image_size = self.scale(400)  # Much bigger image - 400px scaled to screen
         image_rect = pygame.Rect(self.width//2 - image_size//2, image_y, image_size, image_size)
         
         # Get the SKU for this target to find its image
@@ -1433,7 +1452,7 @@ class ArcadeRetailGame:
                 break
         
         if target_sku and target_sku in self.product_images:
-            # Scale up to bigger size for better visibility
+            # Scale to huge size while preserving original quality
             image = self.product_images[target_sku]
             image_scaled = pygame.transform.scale(image, (image_size, image_size))
             self.screen.blit(image_scaled, image_rect)
@@ -1445,32 +1464,32 @@ class ArcadeRetailGame:
             self.screen.blit(no_image_text, no_image_rect)
         
         # Product name below image - clean, no borders
-        name_y = image_rect.bottom + 30
-        target_text = self.font_huge.render(self.current_target['name'], True, HOT_PINK)
+        name_y = image_rect.bottom + self.scale(20)
+        target_text = self.font_large.render(self.current_target['name'], True, HOT_PINK)
         target_rect = target_text.get_rect(center=(self.width//2, name_y))
         self.screen.blit(target_text, target_rect)
         
-        # Exit button at bottom - clear and responsive
-        button_width = self.width * 0.25
-        button_height = self.height * 0.06
-        exit_button_y = self.height * 0.92
-        exit_button_rect = pygame.Rect(self.width//2 - button_width//2, exit_button_y, button_width, button_height)
-        pygame.draw.rect(self.screen, RED, exit_button_rect)
-        pygame.draw.rect(self.screen, BLACK, exit_button_rect, 3)
-        
-        exit_text = self.font_small.render("EXIT TO MENU", True, BLACK)
-        exit_text_rect = exit_text.get_rect(center=exit_button_rect.center)
-        self.screen.blit(exit_text, exit_text_rect)
-        
-        # Feedback message - positioned between product name and exit button
+        # Feedback message - positioned below product name
         if self.scanned_item:
-            feedback_y = self.height * 0.88  # Moved down to avoid overlap
+            feedback_y = name_y + self.scale(50)
             
             # Color based on message type
             feedback_color = BRIGHT_GREEN if "✓ Correct" in self.scanned_item else ORANGE
             feedback_text = self.font_medium.render(self.scanned_item, True, feedback_color)
             feedback_rect = feedback_text.get_rect(center=(self.width//2, feedback_y))
             self.screen.blit(feedback_text, feedback_rect)
+        
+        # Exit button at bottom - clear and responsive
+        button_width = self.width * 0.25
+        button_height = self.height * 0.06
+        exit_button_y = self.height * 0.95
+        exit_button_rect = pygame.Rect(self.width//2 - button_width//2, exit_button_y, button_width, button_height)
+        pygame.draw.rect(self.screen, RED, exit_button_rect)
+        pygame.draw.rect(self.screen, BLACK, exit_button_rect, 3)
+        
+        exit_text = self.font_small.render("RED BUTTON = EXIT", True, BLACK)
+        exit_text_rect = exit_text.get_rect(center=exit_button_rect.center)
+        self.screen.blit(exit_text, exit_text_rect)
     
     def draw_product_manager(self):
         """Draw product manager screen"""
