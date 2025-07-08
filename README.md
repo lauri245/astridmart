@@ -1,6 +1,8 @@
-# 🛒 Arcade Retail Store Game
+# 🛒 Astrid Mart - Arcade Retail Game
 
 A fun, kid-friendly arcade retail game designed for 4-year-olds! This game combines hardware (Raspberry Pi, arcade buttons, barcode scanner) and software to create an authentic shopping experience at home.
+
+**🔗 GitHub Repository:** https://github.com/lauri245/astridmart
 
 ## ✨ Features
 
@@ -13,11 +15,12 @@ A fun, kid-friendly arcade retail game designed for 4-year-olds! This game combi
 - **Receipt Generation**: Automatic receipt creation and saving
 - **EUR Currency**: All prices displayed in Euros
 
-### ⏰ Timer Mode
-- **Fast-Paced Fun**: Find and scan products as quickly as possible
-- **Score System**: Points for correct items, penalties for mistakes
-- **Visual Feedback**: Large, clear displays of target items
-- **Progressive Difficulty**: All items must be found to complete the game
+### 📚 Learning Mode
+- **Educational Experience**: Learn about products without time pressure
+- **Big Product Images**: 300x300 pixel images for easy recognition
+- **Positive Feedback**: Encouraging messages for correct scans
+- **Progress Tracking**: Shows current product and total progress
+- **Randomized Order**: Different product sequence each time
 
 ### 🎮 Game Features
 - **Fullscreen Support**: Optimized for TV/monitor display
@@ -44,23 +47,26 @@ Simulate a real grocery store experience:
 - Get printed receipt
 
 **Controls:**
-- `0-9`: Scan products via keyboard shortcuts
-- `P`: Start payment process
-- `X`: Remove last item from cart
-- `C`: Clear shopping cart
-- `↑↓`: Scroll through cart items
-- `ESC`: Return to main menu
+- Barcode scanner: Scan real product barcodes
+- `0-9`: Scan products via keyboard shortcuts (testing)
+- `P` or BLUE button: Start payment process
+- `X` or RED button: Remove last item from cart
+- `C` or YELLOW button: Clear shopping cart
+- `↑↓`: Scroll through cart items (when more than 4 items)
+- `ESC` or GREEN button: Return to main menu
 
-### 2. Timer Mode
-Fast-paced product finding game:
-- Find target products as quickly as possible
-- 60-second time limit
-- Score points for correct items
-- Track how many items you've found
+### 2. Learning Mode
+Educational product learning experience:
+- Learn about products without time pressure
+- See huge 300x300 pixel product images
+- Positive feedback for correct scans
+- Progress through all products in random order
+- Get final score at completion
 
 **Controls:**
-- `0-9`: Scan products via keyboard shortcuts
-- `ESC`: Return to main menu
+- Barcode scanner: Scan real product barcodes
+- `0-9`: Scan products via keyboard shortcuts (testing)
+- `ESC` or GREEN button: Return to main menu
 
 ### 3. Product Manager
 Manage your product database:
@@ -70,34 +76,105 @@ Manage your product database:
 - Import/export via CSV
 - Manage keyboard shortcuts
 
-## 🚀 Quick Start
+## 🚀 Installation
 
-### Prerequisites
+### 💻 Desktop/Development Setup
+
+**Prerequisites:**
 - Python 3.6+
 - Pygame library
 
-### Installation
-1. Clone or download the game files
+**Installation:**
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/lauri245/astridmart.git
+   cd astridmart
+   ```
+
 2. Install dependencies:
    ```bash
-   pip install pygame
+   pip install -r requirements.txt
    ```
+
 3. Run the game:
    ```bash
    python3 main.py
    ```
 
-### For Desktop Testing
-Run in windowed mode:
+**For Desktop Testing:**
 ```bash
-python3 main.py --windowed
+python3 main.py --windowed --debug
 ```
 
-### Alternative Launcher
-Use the launcher script that auto-installs dependencies:
-```bash
-python3 run_game.py
-```
+### 🥧 Raspberry Pi Setup
+
+**System Requirements:**
+- Raspberry Pi 3B+ or newer
+- Raspberry Pi OS (Bullseye or newer)
+- USB barcode scanner (serial or HID)
+- 4 arcade buttons (RED, BLUE, YELLOW, GREEN)
+- Monitor/TV with HDMI
+
+**Installation Steps:**
+
+1. **Update your Pi:**
+   ```bash
+   sudo apt update && sudo apt upgrade -y
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   sudo apt install python3-pip python3-pygame git -y
+   ```
+
+3. **Clone the game:**
+   ```bash
+   cd /home/pi
+   git clone https://github.com/lauri245/astridmart.git
+   cd astridmart
+   ```
+
+4. **Install Python dependencies:**
+   ```bash
+   pip3 install -r requirements.txt
+   ```
+
+5. **Test the game:**
+   ```bash
+   python3 main.py --windowed --debug
+   ```
+
+6. **Set up autostart (optional):**
+   ```bash
+   # Create autostart directory if it doesn't exist
+   mkdir -p ~/.config/autostart
+   
+   # Create autostart file
+   cat > ~/.config/autostart/astridmart.desktop << EOF
+   [Desktop Entry]
+   Name=Astrid Mart
+   Type=Application
+   Exec=/usr/bin/python3 /home/pi/astridmart/main.py
+   Hidden=false
+   NoDisplay=false
+   X-GNOME-Autostart-enabled=true
+   EOF
+   ```
+
+**Barcode Scanner Setup:**
+- USB HID scanners work automatically
+- Serial scanners auto-detected on `/dev/ttyUSB*` ports
+- Use `--debug` flag to troubleshoot scanner issues
+
+**Arcade Button Wiring:**
+- RED button → GPIO pin (customize in code)
+- BLUE button → GPIO pin (customize in code)  
+- YELLOW button → GPIO pin (customize in code)
+- GREEN button → GPIO pin (customize in code)
+
+**Controls:**
+- **Keyboard (testing):** 1,2,3,Q / X,P,C,ESC
+- **Arcade buttons:** RED, BLUE, YELLOW, GREEN
 
 ## 📁 File Structure
 
@@ -146,6 +223,7 @@ Products are stored in `products.json` with the following structure:
 - 🥤 Dr. Pepper (€2.40) - Barcode: 5902860417095 - Key 6
 - 📖 Princess Magazine (€4.50) - Barcode: 9771736640006 - Key 7
 - 📚 Pippi Longstocking (€12.90) - Barcode: 9789129721591 - Key 8
+- 🍦 Ice Cream (€4.80) - Barcode: 4740093001879 - Key 9
 
 ### Adding Your Own Products
 
@@ -184,6 +262,7 @@ Edit `products.json` directly (not recommended for non-technical users)
 - `images/dr_pepper.png` - Dr. Pepper (barcode: 5902860417095)
 - `images/princess_magazine.png` - Princess Magazine (barcode: 9771736640006)
 - `images/pippi_book.png` - Pippi Longstocking Book (barcode: 9789129721591)
+- `images/ice_cream.png` - Ice Cream (barcode: 4740093001879)
 
 **Photo Requirements:**
 - **Format**: PNG, JPG, or any image format
